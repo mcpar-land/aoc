@@ -6,6 +6,12 @@ pub fn part1(input: &str) -> Result<i32> {
 	Ok(crossword.find("XMAS"))
 }
 
+pub fn part2(input: &str) -> Result<i32> {
+	let crossword = Crossword::new(input.trim());
+
+	Ok(crossword.n_xmases())
+}
+
 struct Crossword {
 	values: Vec<Vec<char>>,
 	width: i32,
@@ -27,6 +33,35 @@ impl Crossword {
 		}
 	}
 
+	pub fn n_xmases(&self) -> i32 {
+		let mut n_results = 0;
+		for p in self.locations('A') {
+			if self.is_xmas(p) {
+				n_results += 1;
+			}
+		}
+		n_results
+	}
+
+	pub fn is_xmas(&self, t: (i32, i32)) -> bool {
+		self._is_xmas(t).unwrap_or(false)
+	}
+
+	pub fn _is_xmas(&self, (x, y): (i32, i32)) -> Option<bool> {
+		if self.get((x, y))? != 'A' {
+			return None;
+		}
+		let tr = self.get((x + 1, y - 1))?;
+		let tl = self.get((x - 1, y - 1))?;
+		let br = self.get((x + 1, y + 1))?;
+		let bl = self.get((x - 1, y + 1))?;
+
+		let valid_a = (tr == 'M' && bl == 'S') || (tr == 'S' && bl == 'M');
+		let valid_b = (tl == 'M' && br == 'S') || (tl == 'S' && br == 'M');
+
+		Some(valid_a && valid_b)
+	}
+
 	pub fn find(&self, target: &str) -> i32 {
 		let first_char = target.chars().nth(0).unwrap();
 		let second_char = target.chars().nth(1).unwrap();
@@ -37,7 +72,7 @@ impl Crossword {
 		let first_char_locations = self.locations(first_char);
 		for l in first_char_locations {
 			for adj in self.adjacent_coords(l) {
-				if self.get(adj) == second_char {
+				if self.get_unchecked(adj) == second_char {
 					potential_matches.push((l, adj));
 				}
 			}
@@ -69,7 +104,7 @@ impl Crossword {
 			return false;
 		}
 
-		if self.get(target) != check_for {
+		if self.get_unchecked(target) != check_for {
 			return false;
 		}
 
@@ -92,7 +127,16 @@ impl Crossword {
 		res
 	}
 
-	pub fn get(&self, (x, y): (i32, i32)) -> char {
+	pub fn get(&self, (x, y): (i32, i32)) -> Option<char> {
+		if x < 0 || y < 0 || x >= self.width || y >= self.height {
+			return None;
+		}
+		let row = self.values.get(y as usize)?;
+		let val = row.get(x as usize)?;
+		Some(*val)
+	}
+
+	pub fn get_unchecked(&self, (x, y): (i32, i32)) -> char {
 		self.values[y as usize][x as usize]
 	}
 
@@ -108,4 +152,4 @@ impl Crossword {
 	}
 }
 
-crate::gen_tests!(2024, 4, (18, 2401));
+crate::gen_tests!(2024, 4, (18, 2401), (9, ?));
