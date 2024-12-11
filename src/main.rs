@@ -86,7 +86,7 @@ macro_rules! gen_tests {
 			);
 			match res {
 				Ok(res) => {
-					log::info!("y {} / d {} / p {} ::: solution =  {}", stringify!($year), stringify!($day), stringify!($part), res);
+					log::info!("y {} / d {} / {} ::: solution =  {}", stringify!($year), stringify!($day), stringify!($test_name), res);
 				},
 				Err(err) => {
 					log::error!("failed: {:?}", &err);
